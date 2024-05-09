@@ -8,6 +8,10 @@ const P_TEMP = `./${TEMP}/`;
 const OUT = 'images_out';
 const P_OUT = `./${OUT}/`;
 
+// 延迟
+const delay = (t = 1) =>
+  new Promise((resolve) => setTimeout(resolve, t * 1000));
+
 // 批量重命名
 async function rename(path, files) {
   const promiseList = [];
@@ -26,8 +30,7 @@ async function format(path, files) {
   const doFormat = (name) =>
     new Promise((resolve, reject) => {
       const newName = name.split('.')[0] + '.webp';
-      const cmdCommand =
-        'cwebp -lossless -preset icon ' + path + name + ' -o ' + path + newName;
+      const cmdCommand = 'cwebp -q 90 ' + path + name + ' -o ' + path + newName;
 
       exec(cmdCommand, (error, stdout, stderr) => {
         if (error) {
@@ -43,10 +46,13 @@ async function format(path, files) {
   for (let name of files) {
     promiseList.push(doFormat(name));
   }
+
+  return promiseList;
 }
 
 // 合成
 async function toOne(path, files, one) {
+  console.log(files.length);
   let cmdCommand = 'webpmux';
   for (let name of files) {
     cmdCommand += ' -frame ' + path + name + ' +40+0+0+1-b';
@@ -73,11 +79,13 @@ async function build(folder) {
   const images = await fsPromise.readdir(path);
   await rename(path, images);
   log(folder + ' 批量重命名 完成');
+  await delay();
 
   log(folder + ' 批量格式转换 开始');
   const images_rename = await fsPromise.readdir(path);
   await format(path, images_rename);
   log(folder + ' 批量格式转换 完成');
+  await delay();
 
   log(folder + ' 合并 开始');
   const images_rename_format = await fsPromise.readdir(path);
@@ -87,7 +95,8 @@ async function build(folder) {
     images_rename_format.filter((item) => item.indexOf('.webp') > -1),
     folder,
   );
-  log(folder + '合并 完成');
+  log(folder + ' 合并 完成');
+  await delay();
 }
 
 // 批量构建 webp
@@ -105,9 +114,13 @@ async function buildList() {
   }
 
   await Promise.all(promiseList);
+  await delay();
+
   await fsPromise.rm(P_TEMP, { force: true, recursive: true });
+  await delay();
 
   log('all done!!!');
+  await delay();
 }
 
 buildList();
