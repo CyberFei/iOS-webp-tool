@@ -30,7 +30,7 @@ async function format(path, files) {
   const doFormat = (name) =>
     new Promise((resolve, reject) => {
       const newName = name.split('.')[0] + '.webp';
-      const cmdCommand = 'cwebp -q 90 ' + path + name + ' -o ' + path + newName;
+      const cmdCommand = 'cwebp -q 80 ' + path + name + ' -o ' + path + newName;
 
       exec(cmdCommand, (error, stdout, stderr) => {
         if (error) {
